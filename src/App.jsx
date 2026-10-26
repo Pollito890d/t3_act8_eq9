@@ -1,53 +1,62 @@
-
-import React, { useState } from 'react';
-import LoginForm from './components/LoginForm';
+// src/App.jsx
+import { useState } from "react";
+import Login from "./components/Login";
+import Sistema from "./components/Sistema"; // Asegúrate de que la ruta sea correcta
+import { loginUser } from "./services/api"; // Tu función fetch de DummyJSON
 
 export default function App() {
-  const [user, setUser] = useState(null); // Almacena los datos del usuario autenticado
+  const [usuario, setUsuario] = useState(null);
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
 
-  const handleLoginSuccess = (userData) => {
-    setUser(userData);
-  };
+  // Función que se ejecuta cuando el login es exitoso
+  async function handleLogin({ username, password }) {
+    // Llamada a la API de DummyJSON
+    const perfilRaw = await loginUser(username, password);
 
-  const handleLogout = () => {
-    setUser(null);
-  };
+    if (!perfilRaw) {
+      throw new Error("No se recibió el perfil del usuario.");
+    }
 
+    // Adaptamos los datos de DummyJSON al formato que espera tu componente Sistema
+    const perfilAdaptado = {
+      nombre: `${perfilRaw.firstName} ${perfilRaw.lastName}`,
+      rol: "Administrador", // DummyJSON no devuelve rol, así que lo simulamos
+      foto: perfilRaw.image, // DummyJSON usa "image", Sistema usa "foto"
+      ...perfilRaw // Guardamos el resto por si acaso
+    };
+
+    setUsuario(perfilAdaptado);
+  }
+
+  // Función para cerrar sesión
+  async function handleLogout() {
+    setCerrandoSesion(true);
+
+    try {
+      // Si tuvieras un token en localStorage, aquí lo borrarías:
+      // localStorage.removeItem("userToken");
+      
+      // Simulamos una pequeña demora de red para que se vea el "Cerrando..."
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch {
+      console.error("Error al cerrar sesión");
+    } finally {
+      setUsuario(null);
+      setCerrandoSesion(false);
+    }
+  }
+
+  // Si NO hay usuario, mostramos la pantalla de Login
+  if (!usuario) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // Si SÍ hay usuario, renderizamos el componente Sistema
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
-      {!user ? (
-        /* Fase 1: Pantalla de Login */
-        <LoginForm onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        /* Fase 2: Sistema Simulado (Temporalmente aquí antes de pasar al Dashboard completo) */
-        <div className="p-8">
-          <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow">
-            <div className="flex items-center justify-between border-b pb-4 mb-6">
-              <div className="flex items-center gap-3">
-                <img 
-                  src={user.image} 
-                  alt={user.firstName} 
-                  className="w-12 h-12 rounded-full border border-amber-500 object-cover"
-                />
-                <div>
-                  <h2 className="font-bold text-lg text-gray-800">{user.firstName} {user.lastName}</h2>
-                  <p className="text-xs text-gray-500">@{user.username} • Administrador</p>
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-medium rounded-xl text-sm transition"
-              >
-                Cerrar Sesión
-              </button>
-            </div>
-            <div className="p-6 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
-              <h3 className="font-bold text-base mb-1">¡Bienvenido al Sistema Central de ¡Hola, Café!</h3>
-              <p className="text-sm">La sesión se ha iniciado correctamente usando la API de DummyJSON[cite: 1]. Las vistas del Sidebar y Navbar (Fase 2) están listas para integrarse.</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    <Sistema
+      usuario={usuario}
+      onLogout={handleLogout}
+      cerrandoSesion={cerrandoSesion}
+    />
   );
 }
