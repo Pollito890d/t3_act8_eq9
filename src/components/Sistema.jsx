@@ -1,3 +1,4 @@
+import { TablaComandero } from './TablaComandero';
 import { useState } from "react";
 import {
   Armchair,
@@ -149,7 +150,7 @@ export default function Sistema({
           </div>
         </header>
 
-        {/* Aquí puedes colocar tus vistas actuales */}
+        {/* Vistas del Sistema */}
         <main className="sistema-contenido" id="contenido-principal">
           {children || (
             <>
@@ -164,13 +165,18 @@ export default function Sistema({
                 para comenzar.
               </p>
 
-              <section
-                className="contenido-panel"
-                aria-label={opcionActual.nombre}
-              >
-                Aquí puedes mostrar el contenido de{" "}
-                <strong>{opcionActual.nombre}</strong>.
-              </section>
+              {/* AQUÍ CONDICIONAMOS PARA MOSTRAR LA TABLA EN LA SECCIÓN DE ÓRDENES */}
+              {seccion === "ordenes" ? (
+                <TablaComandero />
+              ) : (
+                <section
+                  className="contenido-panel"
+                  aria-label={opcionActual.nombre}
+                >
+                  Aquí puedes mostrar el contenido de{" "}
+                  <strong>{opcionActual.nombre}</strong>.
+                </section>
+              )}
             </>
           )}
         </main>
