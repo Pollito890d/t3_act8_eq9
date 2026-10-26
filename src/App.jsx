@@ -1,122 +1,53 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+import React, { useState } from 'react';
+import LoginForm from './components/LoginForm';
+
+export default function App() {
+  const [user, setUser] = useState(null); // Almacena los datos del usuario autenticado
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="min-h-screen bg-gray-100 font-sans">
+      {!user ? (
+        /* Fase 1: Pantalla de Login */
+        <LoginForm onLoginSuccess={handleLoginSuccess} />
+      ) : (
+        /* Fase 2: Sistema Simulado (Temporalmente aquí antes de pasar al Dashboard completo) */
+        <div className="p-8">
+          <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow">
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <div className="flex items-center gap-3">
+                <img 
+                  src={user.image} 
+                  alt={user.firstName} 
+                  className="w-12 h-12 rounded-full border border-amber-500 object-cover"
+                />
+                <div>
+                  <h2 className="font-bold text-lg text-gray-800">{user.firstName} {user.lastName}</h2>
+                  <p className="text-xs text-gray-500">@{user.username} • Administrador</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-medium rounded-xl text-sm transition"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+            <div className="p-6 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
+              <h3 className="font-bold text-base mb-1">¡Bienvenido al Sistema Central de ¡Hola, Café!</h3>
+              <p className="text-sm">La sesión se ha iniciado correctamente usando la API de DummyJSON[cite: 1]. Las vistas del Sidebar y Navbar (Fase 2) están listas para integrarse.</p>
+            </div>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      )}
+    </div>
+  );
 }
-
-export default App
