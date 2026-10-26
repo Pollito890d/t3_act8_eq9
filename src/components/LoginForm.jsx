@@ -1,140 +1,167 @@
-
+// src/components/LoginForm.jsx
 import React, { useState } from 'react';
 
 export default function LoginForm({ onLoginSuccess }) {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
+  const [username, setUsername] = useState('barista@holacafe.com');
+  const [password, setPassword] = useState('HolaCafe#2025');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setErrorMessage('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
 
-        // Validación de campos vacíos (Buenas prácticas)
-        if (!username.trim() || !password.trim()) {
-            setErrorMessage('Por favor, ingresa tu usuario y contraseña.');
-            return;
-        }
-
-        setLoading(true);
-        try {
-            // Llamada al servicio centralizado
-            const userData = await loginUserFromService(username, password);
-            onLoginSuccess(userData);
-        } catch (error) {
-            setErrorMessage(error.message || 'Usuario o contraseña incorrectos.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Importamos el servicio localmente o lo pasamos por props
-    async function loginUserFromService(user, pass) {
-        const { loginUser } = await import('../services/api');
-        return await loginUser(user, pass);
+    // Validación de campos vacíos
+    if (!username.trim() || !password.trim()) {
+      setErrorMessage('Por favor, completa todos los campos.');
+      return;
     }
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7] px-4">
-            <div className="w-full max-w-[440px] bg-white p-8 rounded-2xl shadow-xl border border-orange-100 relative">
+    setLoading(true);
+    try {
+      // Importamos el servicio y realizamos el login real con DummyJSON
+      const { loginUser } = await import('../services/api');
+      const userData = await loginUser(username, password);
+      onLoginSuccess(userData);
+    } catch (error) {
+      setErrorMessage('Usuario o contraseña incorrectos.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF7F2] px-4 font-sans">
+      
+      {/* Contenedor principal con la tarjeta blanca y sombra difuminada del mockup */}
+      <div className="w-full max-w-[480px] bg-white px-10 py-12 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-[#F4EFE6] relative">
         
-                {/* Logo y Encabezado según Figma */}
-                <div className="flex flex-col items-center mb-6">
-                    <div className="flex items-center gap-2 bg-[#F5EFE6] px-4 py-2 rounded-xl border border-[#EBE3D5] mb-4">
-                        <span className="text-2xl">🤌🏽</span>
-                        <span className="font-bold text-gray-800 tracking-wide text-lg">¡HOLA, CAFÉ!</span>
-                    </div>
-                    <h1 className="text-2xl font-bold text-gray-900">¡Hola, Café!</h1>
-                    <p className="text-sm text-gray-500 mt-1">Control de Comandas y Monitoreo de Mesas</p>
-                </div>
+        {/* Encabezado: Logo y Títulos */}
+        <div className="flex flex-col items-center text-center mb-8">
+          
+          {/* Pastilla del Logo */}
+          <div className="flex items-center gap-2 bg-[#F5EFE6] px-5 py-2.5 rounded-2xl border border-[#EBE3D5] mb-5 shadow-sm">
+            <span className="text-2xl leading-none">🤌🏽</span>
+            <div className="text-left">
+              <span className="font-extrabold text-gray-900 tracking-wider text-sm block leading-tight">¡HOLA,</span>
+              <span className="font-extrabold text-amber-800 tracking-wider text-sm block leading-tight">CAFÉ!</span>
+            </div>
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 ml-1"></div>
+          </div>
 
-                {/* Mensaje de Error */}
-                {errorMessage && (
-                    <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded">
-                        {errorMessage}
-                    </div>
-                )}
-
-                {/* Formulario */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                            Correo o usuario
-                        </label>
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                                ✉️
-                            </span>
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                placeholder="ej. emilys o barista@holacafe.com"
-                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:bg-white transition"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                            Contraseña
-                        </label>
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"></span>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:bg-white transition"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 text-sm"
-                            >
-                                {showPassword ? '👁️‍🗨️' : '👁️'}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm py-1">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                                className="w-4 h-4 accent-amber-600 rounded"
-                            />
-                            <span className="text-gray-600 select-none">Recordar sesión</span>
-                        </label>
-                        <a href="#forgot" onClick={(e) => e.preventDefault()} className="text-amber-600 font-medium hover:underline text-xs">
-                            Olvidé mi contraseña
-                        </a>
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                        {loading ? 'Iniciando sesión...' : <>Entrar al Sistema &rarr;</>}
-                    </button>
-                </form>
-
-                <div className="text-center mt-6">
-                    <p className="text-xs text-gray-500">
-                        ¿No tienes una cuenta?{' '}
-                        <a href="#register" onClick={(e) => e.preventDefault()} className="text-amber-600 font-medium hover:underline">
-                            Registrarse
-                        </a>
-                    </p>
-                </div>
-
+          <h1 className="text-[26px] font-bold text-gray-900 tracking-tight">¡Hola, Café!</h1>
+          <p className="text-xs text-gray-400 mt-1 font-medium">Control de Comandas y Monitoreo de Mesas</p>
         </div>
+
+        {/* Alerta de Error */}
+        {errorMessage && (
+          <div className="mb-5 p-3.5 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs rounded-lg font-medium">
+            {errorMessage}
+          </div>
+        )}
+
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          
+          {/* Campo Correo o Usuario */}
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Correo o usuario
+            </label>
+            <div className="relative flex items-center">
+              <span className="absolute left-3.5 text-gray-400 text-base">
+                ✉️
+              </span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="barista@holacafe.com"
+                className="w-full pl-11 pr-4 py-3.5 bg-[#FAF9F6] border border-[#EAE3D9] rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white transition"
+              />
+            </div>
+          </div>
+
+          {/* Campo Contraseña */}
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Contraseña
+            </label>
+            <div className="relative flex items-center">
+              <span className="absolute left-3.5 text-gray-400 text-base">
+                🔒
+              </span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pl-11 pr-12 py-3.5 bg-[#FAF9F6] border border-[#EAE3D9] rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:bg-white transition"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 text-gray-400 hover:text-gray-600 text-sm focus:outline-none"
+              >
+                {showPassword ? '👁️‍🗨️' : '👁️'}
+              </button>
+            </div>
+          </div>
+
+          {/* Opciones: Recordar sesión y Olvidé contraseña */}
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 accent-[#E59819] rounded cursor-pointer"
+              />
+              <span className="text-xs font-medium text-gray-700 select-none">Recordar sesión</span>
+            </label>
+            
+            <a 
+              href="#forgot" 
+              onClick={(e) => e.preventDefault()} 
+              className="text-[#E59819] font-semibold hover:underline text-xs"
+            >
+              Olvidé mi contraseña
+            </a>
+          </div>
+
+          {/* Botón de Entrar al Sistema */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 mt-2 bg-gradient-to-r from-[#E59819] to-[#D4870B] hover:from-[#D4870B] hover:to-[#C37600] text-white font-bold text-sm rounded-xl shadow-[0_10px_20px_rgba(229,152,25,0.25)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+          >
+            {loading ? (
+              'Iniciando sesión...'
+            ) : (
+              <>
+                Entrar al Sistema <span className="text-lg leading-none">&rarr;</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Pie: Registro */}
+        <div className="text-center mt-7">
+          <p className="text-xs text-gray-500 font-medium">
+            ¿No tienes una cuenta?{' '}
+            <a 
+              href="#register" 
+              onClick={(e) => e.preventDefault()} 
+              className="text-[#E59819] font-bold hover:underline"
+            >
+              Registrarse
+            </a>
+          </p>
+        </div>
+
+      </div>
     </div>
   );
 }
