@@ -61,6 +61,18 @@ Sistema web interactivo para la gestión y toma de órdenes de la cafetería **"
 
 ---
 
+---
+
+## Capturas de Figma
+
+**1. Pantalla de Acceso (Login)**
+![Login](img/Login.png)
+
+**2. Panel de Comandero/ordenes**
+![Index](img/comandas.png)
+
+---
+
 ## Estructura del Proyecto
 
 ```text
@@ -88,13 +100,7 @@ t3_act8_eq9/
 ├── package.json                # Metadatos del proyecto y dependencias
 ├── vite.config.js              # Configuración del bundler Vite y subruta base
 └── README.md                   # Documentación general del repositorio
-
-## Capturas de Figma
-
-**1. Pantalla de Acceso (Login)**
-![Login](img/Login.png)
+'''
 
 
-**2. Panel de Comandero/ordenes**
-![Index](img/comandas.png)
 ```
