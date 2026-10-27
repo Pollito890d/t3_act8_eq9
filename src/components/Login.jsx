@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./Login.css";
+import logoCafe from '../img/hola_cafe_logo.jpeg';
 
 function Icon({ name, ...props }) {
   const paths = {
@@ -75,11 +76,10 @@ export default function Login({ onLogin }) {
       <section className="login-card" aria-labelledby="login-title">
         <header className="login-header">
           <div className="login-brand">
-            <img
-              src="../src/img/hola_cafe_logo.jpeg"
-              alt="Hola Café"
-              width="163"
-              height="80"
+            <img 
+              src={logoCafe} 
+              alt="Hola Café" 
+              style={{ width: '40px', height: 'auto' }} // tus estilos correspondientes
             />
             <span className="brand-dot" aria-hidden="true" />
           </div>
