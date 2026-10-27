@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getProducts, createProduct, deleteProduct } from '../services/api';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '../services/api';
 
 export const TablaComandero = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,9 +14,9 @@ export const TablaComandero = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modal de Agregar Comanda
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newDish, setNewDish] = useState({ name: '', mesa: '01', mesero: 'David H.', price: '' });
+  const [editingItem, setEditingItem] = useState(null);
+  const [formData, setFormData] = useState({ name: '', mesa: '01', mesero: 'David H.', price: '' });
   const [submitting, setSubmitting] = useState(false);
 
   const meserosList = ['David H.', 'Gael O.', 'Santi M.', 'Sarai L.', 'Melissa H.', 'Ana P.'];
@@ -54,37 +54,70 @@ export const TablaComandero = () => {
     setSearchParams({ page: '1', limit: limit.toString() });
   };
 
-  // 1. CREAR NUEVACOMANDA 
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    if (!newDish.name || !newDish.price) return alert('Por favor llena los campos obligatorios.');
+  const handleOpenCreate = () => {
+    setEditingItem(null);
+    setFormData({ name: '', mesa: '01', mesero: 'David H.', price: '' });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (item, index) => {
+    setEditingItem(item);
+    const mesaNum = String((index % 9) + 1).padStart(2, '0');
+    const precioSimulado = (item.caloriesPerServing ? item.caloriesPerServing * 1.5 : 85).toFixed(2);
     
+    setFormData({
+      name: item.name,
+      mesa: mesaNum,
+      mesero: meserosList[index % meserosList.length],
+      price: precioSimulado,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.price) return alert('Por favor llena los campos obligatorios.');
+
     setSubmitting(true);
     try {
-      // Petición a la API simulada de DummyJSON
-      await createProduct({
-        name: newDish.name,
-        caloriesPerServing: parseFloat(newDish.price) / 1.5,
-      });
+      const caloriesValue = parseFloat(formData.price) / 1.5;
 
-      const createdItem = {
-        id: Date.now(),
-        name: newDish.name,
-        caloriesPerServing: parseFloat(newDish.price) / 1.5,
-      };
+      if (editingItem) {
+        await updateProduct(editingItem.id, {
+          name: formData.name,
+          caloriesPerServing: caloriesValue,
+        });
 
-      setRecipes([createdItem, ...recipes]);
-      setTotal(total + 1);
+        // Actualización instantánea en el estado local
+        setRecipes(
+          recipes.map((item) =>
+            item.id === editingItem.id ? { ...item, name: formData.name, caloriesPerServing: caloriesValue } : item
+          )
+        );
+      } else {
+        await createProduct({
+          name: formData.name,
+          caloriesPerServing: caloriesValue,
+        });
+
+        const createdItem = {
+          id: Date.now(),
+          name: formData.name,
+          caloriesPerServing: caloriesValue,
+        };
+
+        setRecipes([createdItem, ...recipes]);
+        setTotal(total + 1);
+      }
+
       setIsModalOpen(false);
-      setNewDish({ name: '', mesa: '01', mesero: 'David H.', price: '' });
     } catch (err) {
-      alert('Error al registrar la comanda');
+      alert('Error al guardar el registro');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // 2. ELIMINAR COMANDA 
   const handleDelete = async (id) => {
     if (!window.confirm('¿Estás seguro de eliminar esta comanda?')) return;
     try {
@@ -101,7 +134,6 @@ export const TablaComandero = () => {
   return (
     <div style={{ background: '#fdfbf7', padding: '24px', borderRadius: '16px', color: '#4a3b32', position: 'relative' }}>
       
-      {/* BARRA SUPERIOR: FILTROS Y BOTÓN AGREGAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
         <input
           type="text"
@@ -121,7 +153,7 @@ export const TablaComandero = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenCreate}
             style={{
               background: '#d97706',
               color: '#ffffff',
@@ -170,7 +202,8 @@ export const TablaComandero = () => {
               <tbody>
                 {recipes.length > 0 ? (
                   recipes.map((item, index) => {
-                    const mesaNum = String((index % 9) + 1).padStart(2, '0');                    const estado = estados[index % estados.length];
+                    const mesaNum = String((index % 9) + 1).padStart(2, '0');
+                    const estado = estados[index % estados.length];
                     const mesero = meserosList[index % meserosList.length];
                     const precioSimulado = (item.caloriesPerServing ? item.caloriesPerServing * 1.5 : 85).toFixed(2);
 
@@ -190,9 +223,15 @@ export const TablaComandero = () => {
                           </span>
                         </td>
                         <td style={{ padding: '14px', fontWeight: '600', color: '#374151' }}>{item.name}</td>
-                        <td style={{ padding: '14px', color: '#4b5563' }}>👤 {mesero}</td>
+                        <td style={{ padding: '14px', color: '#4b5563' }}> {mesero}</td>
                         <td style={{ padding: '14px', textAlign: 'right' }}>
-                          <span style={{ fontWeight: 'bold', color: '#059669', marginRight: '16px' }}>${precioSimulado} MXN</span>
+                          <span style={{ fontWeight: 'bold', color: '#059669', marginRight: '12px' }}>${precioSimulado} MXN</span>
+                          <button
+                            onClick={() => handleOpenEdit(item, index)}
+                            style={{ background: '#fef3c7', color: '#b45309', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', marginRight: '6px' }}
+                          >
+                            Editar
+                          </button>
                           <button
                             onClick={() => handleDelete(item.id)}
                             style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
@@ -212,7 +251,6 @@ export const TablaComandero = () => {
             </table>
           </div>
 
-          {/* PAGINACIÓN */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px' }}>
             <span style={{ fontSize: '13px', color: '#7c6a5d' }}>
               Mostrando página <strong>{page}</strong> de <strong>{totalPages || 1}</strong> ({total} totales)
@@ -237,21 +275,23 @@ export const TablaComandero = () => {
         </>
       )}
 
-      {/* MODAL PARA AGREGAR COMANDA */}
+      {/* MODAL PARA CREAR / EDITAR */}
       {isModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ background: '#ffffff', padding: '30px', borderRadius: '16px', width: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ marginTop: 0, color: '#4a3b32', marginBottom: '16px' }}>Nueva Comanda - ¡Hola, Café!</h3>
+            <h3 style={{ marginTop: 0, color: '#4a3b32', marginBottom: '16px' }}>
+              {editingItem ? 'Editar Comanda' : 'Nueva Comanda'} - ¡Hola, Café!
+            </h3>
             
-            <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b584c' }}>Platillo o Bebida:</label>
                 <input
                   type="text"
                   required
                   placeholder="Ej. Café Americano y Panini"
-                  value={newDish.name}
-                  onChange={(e) => setNewDish({ ...newDish, name: e.target.value })}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', outline: 'none' }}
                 />
               </div>
@@ -259,9 +299,18 @@ export const TablaComandero = () => {
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b584c' }}>Número de Mesa:</label>
                 <select
-                  value={newDish.mesa}
-                  onChange={(e) => setNewDish({ ...newDish, mesa: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', background: '#fff' }}
+                  value={formData.mesa}
+                  disabled={editingItem !== null} 
+                  onChange={(e) => setFormData({ ...formData, mesa: e.target.value })}
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e0d6cc', 
+                    marginTop: '4px', 
+                    background: editingItem !== null ? '#f5f0eb' : '#fff',
+                    cursor: editingItem !== null ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   {['01', '02', '03', '04', '05', '06', '07', '08', '09'].map((m) => (
                     <option key={m} value={m}>Mesa {m}</option>
@@ -272,9 +321,18 @@ export const TablaComandero = () => {
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b584c' }}>Mesero Asignado:</label>
                 <select
-                  value={newDish.mesero}
-                  onChange={(e) => setNewDish({ ...newDish, mesero: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', background: '#fff' }}
+                  value={formData.mesero}
+                  disabled={editingItem !== null} // Bloqueado al editar
+                  onChange={(e) => setFormData({ ...formData, mesero: e.target.value })}
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e0d6cc', 
+                    marginTop: '4px', 
+                    background: editingItem !== null ? '#f5f0eb' : '#fff',
+                    cursor: editingItem !== null ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   {meserosList.map((mesero) => (
                     <option key={mesero} value={mesero}>{mesero}</option>
@@ -288,8 +346,8 @@ export const TablaComandero = () => {
                   type="number"
                   required
                   placeholder="Ej. 95"
-                  value={newDish.price}
-                  onChange={(e) => setNewDish({ ...newDish, price: e.target.value })}
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', outline: 'none' }}
                 />
               </div>
@@ -307,7 +365,7 @@ export const TablaComandero = () => {
                   disabled={submitting}
                   style={{ padding: '10px 18px', borderRadius: '8px', border: 'none', background: '#d97706', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                  {submitting ? 'Guardando...' : 'Guardar Comanda'}
+                  {submitting ? 'Guardando...' : (editingItem ? 'Actualizar Comanda' : 'Guardar Comanda')}
                 </button>
               </div>
             </form>
