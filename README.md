@@ -15,7 +15,7 @@ Sistema web interactivo para la gestión y toma de órdenes de la cafetería **"
 ## 🌐 Enlaces del Proyecto
 
 * **Repositorio en GitHub:** [https://github.com/Pollito890d/t3_act8_eq9](https://github.com/Pollito890d/t3_act8_eq9)
-* **Despliegue en VPS:** `http://IP_DE_SU_VPS/t3_act8_eq9/` *(Reemplazar con la IP asignada a su servidor)*
+* **Despliegue en VPS:** `http://143.198.182.173/t3_act8_eq9/`
 
 ---
 
