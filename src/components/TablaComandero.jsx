@@ -74,45 +74,59 @@ export const TablaComandero = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.price) return alert('Por favor llena los campos obligatorios.');
+    if (!formData.name || !formData.price) {
+      alert('Por favor llena los campos obligatorios.');
+      return;
+    }
+
+    // Mensaje de confirmación obligatorio
+    if (editingItem) {
+      const confirmar = window.confirm('¿Confirmas que deseas actualizar los datos de esta comanda?');
+      if (!confirmar) return;
+    }
 
     setSubmitting(true);
     try {
       const caloriesValue = parseFloat(formData.price) / 1.5;
 
       if (editingItem) {
+        // 1. Petición a la API
         await updateProduct(editingItem.id, {
           name: formData.name,
           caloriesPerServing: caloriesValue,
         });
 
-        // Actualización instantánea en el estado local
-        setRecipes(
-          recipes.map((item) =>
-            item.id === editingItem.id ? { ...item, name: formData.name, caloriesPerServing: caloriesValue } : item
+        // 2. Reflejo en el estado local
+        setRecipes((prev) =>
+          prev.map((item) =>
+            item.id === editingItem.id
+              ? { ...item, name: formData.name, caloriesPerServing: caloriesValue }
+              : item
           )
         );
       } else {
+        // 1. Petición a la API
         await createProduct({
           name: formData.name,
           caloriesPerServing: caloriesValue,
         });
 
+        // 2. Reflejo en el estado local
         const createdItem = {
           id: Date.now(),
           name: formData.name,
           caloriesPerServing: caloriesValue,
         };
 
-        setRecipes([createdItem, ...recipes]);
-        setTotal(total + 1);
+        setRecipes((prev) => [createdItem, ...prev]);
+        setTotal((prevTotal) => prevTotal + 1);
       }
 
       setIsModalOpen(false);
     } catch (err) {
-      alert('Error al guardar el registro');
+      alert(err.message || 'Error al procesar la comanda');
     } finally {
       setSubmitting(false);
     }
@@ -133,7 +147,6 @@ export const TablaComandero = () => {
 
   return (
     <div style={{ background: '#fdfbf7', padding: '24px', borderRadius: '16px', color: '#4a3b32', position: 'relative' }}>
-      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
         <input
           type="text"
@@ -275,12 +288,12 @@ export const TablaComandero = () => {
         </>
       )}
 
-      {/* MODAL PARA CREAR / EDITAR */}
+      {/* MODAL PARA CREAR/EDITAR */}
       {isModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ background: '#ffffff', padding: '30px', borderRadius: '16px', width: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
             <h3 style={{ marginTop: 0, color: '#4a3b32', marginBottom: '16px' }}>
-              {editingItem ? 'Editar Comanda' : 'Nueva Comanda'} - ¡Hola, Café!
+              {editingItem ? 'Editar Comanda' : 'Nueva Comanda'}
             </h3>
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
