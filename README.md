@@ -4,7 +4,7 @@ Sistema web interactivo para la gestión y toma de órdenes de la cafetería **"
 
 ---
 
-## 👥 Integrantes del Equipo (Equipo 9)
+##  Integrantes del Equipo (Equipo 9)
 
 * **Luna Cenobio Sarai**
 * **Martínez Villalobos Dante**
@@ -12,14 +12,14 @@ Sistema web interactivo para la gestión y toma de órdenes de la cafetería **"
 
 ---
 
-## 🌐 Enlaces del Proyecto
+##  Enlaces del Proyecto
 
 * **Repositorio en GitHub:** [https://github.com/Pollito890d/t3_act8_eq9](https://github.com/Pollito890d/t3_act8_eq9)
 * **Despliegue en VPS:** `http://143.198.182.173/t3_act8_eq9/`
 
 ---
 
-## 🛠️ Tecnologías y APIs Utilizadas
+##  Tecnologías y APIs Utilizadas
 
 * **Entorno & Librerías:** React 18+, Vite, JavaScript (ES6+), HTML5, CSS3.
 * **API de Autenticación:** [DummyJSON Auth](https://dummyjson.com/docs/auth) (`POST https://dummyjson.com/auth/login`) para validación de credenciales y obtención de perfil (nombre, foto y token).
@@ -27,7 +27,7 @@ Sistema web interactivo para la gestión y toma de órdenes de la cafetería **"
 
 ---
 
-## 🚀 Funcionalidades Implementadas
+##  Funcionalidades Implementadas
 
 ### Fase 1: Autenticación (Login)
 * Formulario basado en el mockup de Figma con validación previa de campos vacíos.
@@ -57,7 +57,7 @@ Sistema web interactivo para la gestión y toma de órdenes de la cafetería **"
 
 ---
 
-## 📁 Estructura del Proyecto
+##  Estructura del Proyecto
 
 ```text
 t3_act8_eq9/
