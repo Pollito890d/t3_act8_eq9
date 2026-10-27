@@ -66,7 +66,7 @@ Sistema web interactivo para la gestión y toma de órdenes de la cafetería **"
 ## Capturas de Figma
 
 **1. Pantalla de Acceso (Login)**
-![Login](src/img/Login.png)
+![Login](src/img/login.png)
 
 **2. Panel de Comandero/ordenes**
 ![Comandas](src/img/comandas.png)
