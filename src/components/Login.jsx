@@ -79,7 +79,7 @@ export default function Login({ onLogin }) {
             <img 
               src={logoCafe} 
               alt="Hola Café" 
-              style={{ width: '40px', height: 'auto' }} // tus estilos correspondientes
+              style={{ width: '163px', height: '80' }}
             />
             <span className="brand-dot" aria-hidden="true" />
           </div>

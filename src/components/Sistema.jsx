@@ -1,3 +1,4 @@
+import logoCafe from '../img/hola_cafe_logo.jpeg';
 import { TablaComandero } from './TablaComandero';
 import { useState } from "react";
 import {
@@ -55,7 +56,11 @@ export default function Sistema({
       <aside className="sidebar" aria-label="Menú principal">
         <div className="sidebar-marca">
           <div className="sidebar-logo">
-            <img src="../src/img/hola_cafe_logo.jpeg" alt="Hola Café" />
+            <img 
+              src={logoCafe} 
+              alt="Hola Café" 
+              // conserva las clases o estilos que ya tenías
+            />
           </div>
 
           <div className="sidebar-marca-texto">
