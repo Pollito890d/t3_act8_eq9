@@ -16,7 +16,7 @@ export async function loginUser(username, password) {
   }
 }
 
-// Comandero / Órdenes
+// Órdenes
 export const getProducts = async (limit = 10, skip = 0, search = '') => {
   let url = `${API_BASE_URL}/recipes?limit=${limit}&skip=${skip}`;
   
@@ -35,19 +35,30 @@ export const createProduct = async (data) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
+  if (!res.ok) throw new Error('Error al registrar la comanda en el servidor.');
   return await res.json();
 };
 
 export const updateProduct = async (id, data) => {
+  // Si el ID fue generado localmente (timestamp largo), omitimos la llamada al mock
+  if (typeof id === 'number' && id > 1000) {
+    return { id, ...data };
+  }
   const res = await fetch(`${API_BASE_URL}/recipes/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
+  if (!res.ok) throw new Error('Error al actualizar la comanda en el servidor.');
   return await res.json();
 };
 
 export const deleteProduct = async (id) => {
+  // Si el ID fue generado localmente, omitimos la llamada al mock
+  if (typeof id === 'number' && id > 1000) {
+    return { isDeleted: true, id };
+  }
   const res = await fetch(`${API_BASE_URL}/recipes/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Error al eliminar la comanda en el servidor.');
   return await res.json();
 };
