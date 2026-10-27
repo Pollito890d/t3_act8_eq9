@@ -22,6 +22,10 @@ export const TablaComandero = () => {
   const meserosList = ['David H.', 'Gael O.', 'Santi M.', 'Sarai L.', 'Melissa H.', 'Ana P.'];
   const estados = ['OCUPADA', 'PIDIENDO CUENTA', 'OCUPADA', 'LIBRE', 'OCUPADA'];
 
+  // Estado para controlar el modal de confirmación de eliminación
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, [page, limit, search]);
@@ -132,14 +136,28 @@ const handleSubmit = async (e) => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar esta comanda?')) return;
+  // 1. Abre el modal personalizado guardando la comanda seleccionada
+  const handleRequestDelete = (item) => {
+    setItemToDelete(item);
+  };
+
+  // 2. Ejecuta la petición y actualiza el estado cuando el usuario confirma
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    setDeleting(true);
     try {
-      await deleteProduct(id);
-      setRecipes(recipes.filter((item) => item.id !== id));
-      setTotal(total - 1);
+      await deleteProduct(itemToDelete.id);
+      
+      // Actualizamos el estado local
+      setRecipes((prev) => prev.filter((item) => item.id !== itemToDelete.id));
+      setTotal((prevTotal) => prevTotal - 1);
+      
+      setItemToDelete(null);
     } catch (err) {
-      alert('Error al eliminar el registro');
+      alert(err.message || 'Error al eliminar el registro');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -246,8 +264,17 @@ const handleSubmit = async (e) => {
                             Editar
                           </button>
                           <button
-                            onClick={() => handleDelete(item.id)}
-                            style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                            onClick={() => handleRequestDelete(item)}
+                            style={{
+                              background: '#fee2e2',
+                              color: '#dc2626',
+                              border: 'none',
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              fontWeight: 'bold',
+                            }}
                           >
                             Eliminar
                           </button>
@@ -382,6 +409,99 @@ const handleSubmit = async (e) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* MODAL PERSONALIZADO DE CONFIRMACIÓN PARA ELIMINAR */}
+      {itemToDelete && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.45)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1100,
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              padding: '28px',
+              borderRadius: '16px',
+              width: '380px',
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.15)',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: '52px',
+                height: '52px',
+                borderRadius: '50%',
+                background: '#fee2e2',
+                color: '#dc2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                margin: '0 auto 16px',
+              }}
+            >
+              🗑️
+            </div>
+
+            <h3 style={{ margin: '0 0 8px 0', color: '#4a3b32', fontSize: '18px' }}>
+              ¿Eliminar comanda?
+            </h3>
+
+            <p style={{ margin: '0 0 24px 0', color: '#7c6a5d', fontSize: '14px', lineHeight: '1.4' }}>
+              ¿Estás seguro de que deseas eliminar <strong>"{itemToDelete.name}"</strong>? Esta acción no se puede deshacer.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setItemToDelete(null)}
+                disabled={deleting}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #e0d6cc',
+                  background: '#f5f0eb',
+                  color: '#4a3b32',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                }}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)',
+                }}
+              >
+                {deleting ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
           </div>
         </div>
       )}
