@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getProducts } from '../services/api';
+import { getProducts, createProduct, deleteProduct } from '../services/api';
 
 export const TablaComandero = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,24 +14,32 @@ export const TablaComandero = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const skip = (page - 1) * limit;
-        const data = await getProducts(limit, skip, search);
-        setRecipes(data.recipes || []);
-        setTotal(data.total || 0);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Modal de Agregar Comanda
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newDish, setNewDish] = useState({ name: '', mesa: '01', mesero: 'David H.', price: '' });
+  const [submitting, setSubmitting] = useState(false);
 
+  const meserosList = ['David H.', 'Gael O.', 'Santi M.', 'Sarai L.', 'Melissa H.', 'Ana P.'];
+  const estados = ['OCUPADA', 'PIDIENDO CUENTA', 'OCUPADA', 'LIBRE', 'OCUPADA'];
+
+  useEffect(() => {
     fetchData();
   }, [page, limit, search]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const skip = (page - 1) * limit;
+      const data = await getProducts(limit, skip, search);
+      setRecipes(data.recipes || []);
+      setTotal(data.total || 0);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePageChange = (newPage) => {
     setSearchParams({ page: newPage.toString(), limit: limit.toString() });
@@ -46,54 +54,104 @@ export const TablaComandero = () => {
     setSearchParams({ page: '1', limit: limit.toString() });
   };
 
+  // 1. CREAR NUEVACOMANDA 
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    if (!newDish.name || !newDish.price) return alert('Por favor llena los campos obligatorios.');
+    
+    setSubmitting(true);
+    try {
+      // Petición a la API simulada de DummyJSON
+      await createProduct({
+        name: newDish.name,
+        caloriesPerServing: parseFloat(newDish.price) / 1.5,
+      });
+
+      const createdItem = {
+        id: Date.now(),
+        name: newDish.name,
+        caloriesPerServing: parseFloat(newDish.price) / 1.5,
+      };
+
+      setRecipes([createdItem, ...recipes]);
+      setTotal(total + 1);
+      setIsModalOpen(false);
+      setNewDish({ name: '', mesa: '01', mesero: 'David H.', price: '' });
+    } catch (err) {
+      alert('Error al registrar la comanda');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 2. ELIMINAR COMANDA 
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta comanda?')) return;
+    try {
+      await deleteProduct(id);
+      setRecipes(recipes.filter((item) => item.id !== id));
+      setTotal(total - 1);
+    } catch (err) {
+      alert('Error al eliminar el registro');
+    }
+  };
+
   const totalPages = Math.ceil(total / limit);
 
-  // Lista simulada de meseros para mapear en la tabla estilo Figma
-  const meseros = ['David H.', 'Gael O.', 'Santi M.', 'Sarai L.', 'Melissa H.', 'Ana P.'];
-  const estados = ['OCUPADA', 'PIDIENDO CUENTA', 'OCUPADA', 'LIBRE', 'OCUPADA'];
-
   return (
-    <div style={{ background: '#fdfbf7', padding: '24px', borderRadius: '16px', color: '#4a3b32' }}>
-      {/* FILTROS Y BÚSQUEDA */}
+    <div style={{ background: '#fdfbf7', padding: '24px', borderRadius: '16px', color: '#4a3b32', position: 'relative' }}>
+      
+      {/* BARRA SUPERIOR: FILTROS Y BOTÓN AGREGAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
         <input
           type="text"
-          placeholder="🔍 Buscar por platillo, bebida o número de mesa..."
+          placeholder="🔍 Buscar platillo o bebida..."
           value={search}
           onChange={handleSearchChange}
           style={{
             padding: '10px 16px',
             borderRadius: '10px',
             border: '1px solid #e0d6cc',
-            width: '320px',
+            width: '280px',
             fontSize: '14px',
             outline: 'none',
             background: '#ffffff'
           }}
         />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#6b584c' }}>
-          <span>Filas por página:</span>
-          <select
-            value={limit}
-            onChange={handleLimitChange}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => setIsModalOpen(true)}
             style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: '1px solid #e0d6cc',
-              background: '#fff',
+              background: '#d97706',
+              color: '#ffffff',
+              border: 'none',
+              padding: '10px 18px',
+              borderRadius: '10px',
+              fontWeight: 'bold',
               cursor: 'pointer',
-              fontWeight: 'bold'
+              boxShadow: '0 2px 6px rgba(217, 119, 6, 0.3)'
             }}
           >
-            <option value="6">6</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-          </select>
+            + Nueva Comanda
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#6b584c' }}>
+            <span>Mostrar:</span>
+            <select
+              value={limit}
+              onChange={handleLimitChange}
+              style={{ padding: '8px', borderRadius: '8px', border: '1px solid #e0d6cc', background: '#fff', fontWeight: 'bold' }}
+            >
+              <option value="6">6</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {loading && <div style={{ padding: '40px', textAlign: 'center', color: '#d97706', fontWeight: 'bold' }}>⏳ Cargando comandas de la cafetería...</div>}
+      {loading && <div style={{ padding: '40px', textAlign: 'center', color: '#d97706', fontWeight: 'bold' }}>⏳ Cargando comandas...</div>}
       {error && <div style={{ padding: '20px', backgroundColor: '#fef2f2', color: '#dc2626', borderRadius: '10px', marginBottom: '20px' }}>⚠️ {error}</div>}
 
       {!loading && !error && (
@@ -105,23 +163,20 @@ export const TablaComandero = () => {
                   <th style={{ padding: '12px' }}>MESA</th>
                   <th style={{ padding: '12px' }}>ESTADO</th>
                   <th style={{ padding: '12px' }}>PLATILLO / BEBIDA</th>
-                  <th style={{ padding: '12px' }}>MESERO ASIGNADO</th>
-                  <th style={{ padding: '12px', textAlign: 'right' }}>COMANDA ACTUAL</th>
+                  <th style={{ padding: '12px' }}>MESERO</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>PRECIO / ACCIONES</th>
                 </tr>
               </thead>
               <tbody>
                 {recipes.length > 0 ? (
                   recipes.map((item, index) => {
-                    const mesaNum = String((index % 8) + 1).padStart(2, '0');
-                    const estado = estados[index % estados.length];
-                    const mesero = meseros[index % meseros.length];
-                    const precioSimulado = (item.caloriesPerServing * 1.5).toFixed(2);
+                    const mesaNum = String((index % 9) + 1).padStart(2, '0');                    const estado = estados[index % estados.length];
+                    const mesero = meserosList[index % meserosList.length];
+                    const precioSimulado = (item.caloriesPerServing ? item.caloriesPerServing * 1.5 : 85).toFixed(2);
 
                     return (
                       <tr key={item.id} style={{ background: '#ffffff', borderRadius: '10px', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-                        <td style={{ padding: '14px', fontWeight: 'bold', color: '#d97706' }}>
-                          Mesa {mesaNum}
-                        </td>
+                        <td style={{ padding: '14px', fontWeight: 'bold', color: '#d97706' }}>Mesa {mesaNum}</td>
                         <td style={{ padding: '14px' }}>
                           <span style={{
                             padding: '4px 10px',
@@ -134,64 +189,46 @@ export const TablaComandero = () => {
                             {estado}
                           </span>
                         </td>
-                        <td style={{ padding: '14px', fontWeight: '600', color: '#374151' }}>
-                          {item.name}
-                        </td>
-                        <td style={{ padding: '14px', color: '#4b5563' }}>
-                          👤 {mesero}
-                        </td>
-                        <td style={{ padding: '14px', textAlign: 'right', fontWeight: 'bold', color: '#111827' }}>
-                          #{1000 + item.id} <br />
-                          <small style={{ color: '#059669', fontSize: '13px' }}>${precioSimulado} MXN</small>
+                        <td style={{ padding: '14px', fontWeight: '600', color: '#374151' }}>{item.name}</td>
+                        <td style={{ padding: '14px', color: '#4b5563' }}>👤 {mesero}</td>
+                        <td style={{ padding: '14px', textAlign: 'right' }}>
+                          <span style={{ fontWeight: 'bold', color: '#059669', marginRight: '16px' }}>${precioSimulado} MXN</span>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                          >
+                            Eliminar
+                          </button>
                         </td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#9ca3af' }}>
-                      No se encontraron comandas registradas.
-                    </td>
+                    <td colSpan="5" style={{ padding: '24px', textAlign: 'center', color: '#9ca3af' }}>No hay comandas registradas.</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
 
-          {/* CONTROLES DE PAGINACIÓN */}
+          {/* PAGINACIÓN */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px' }}>
             <span style={{ fontSize: '13px', color: '#7c6a5d' }}>
-              Mostrando página <strong>{page}</strong> de <strong>{totalPages || 1}</strong> ({total} registros registrados)
+              Mostrando página <strong>{page}</strong> de <strong>{totalPages || 1}</strong> ({total} totales)
             </span>
-
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 disabled={page <= 1}
                 onClick={() => handlePageChange(page - 1)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e0d6cc',
-                  background: page <= 1 ? '#f5f0eb' : '#ffffff',
-                  color: page <= 1 ? '#b0a296' : '#4a3b32',
-                  cursor: page <= 1 ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold'
-                }}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e0d6cc', background: page <= 1 ? '#f5f0eb' : '#fff', cursor: page <= 1 ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
               >
                 Anterior
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => handlePageChange(page + 1)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e0d6cc',
-                  background: page >= totalPages ? '#f5f0eb' : '#ffffff',
-                  color: page >= totalPages ? '#b0a296' : '#4a3b32',
-                  cursor: page >= totalPages ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold'
-                }}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e0d6cc', background: page >= totalPages ? '#f5f0eb' : '#fff', cursor: page >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
               >
                 Siguiente
               </button>
@@ -199,6 +236,85 @@ export const TablaComandero = () => {
           </div>
         </>
       )}
+
+      {/* MODAL PARA AGREGAR COMANDA */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#ffffff', padding: '30px', borderRadius: '16px', width: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ marginTop: 0, color: '#4a3b32', marginBottom: '16px' }}>Nueva Comanda - ¡Hola, Café!</h3>
+            
+            <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b584c' }}>Platillo o Bebida:</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. Café Americano y Panini"
+                  value={newDish.name}
+                  onChange={(e) => setNewDish({ ...newDish, name: e.target.value })}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b584c' }}>Número de Mesa:</label>
+                <select
+                  value={newDish.mesa}
+                  onChange={(e) => setNewDish({ ...newDish, mesa: e.target.value })}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', background: '#fff' }}
+                >
+                  {['01', '02', '03', '04', '05', '06', '07', '08', '09'].map((m) => (
+                    <option key={m} value={m}>Mesa {m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b584c' }}>Mesero Asignado:</label>
+                <select
+                  value={newDish.mesero}
+                  onChange={(e) => setNewDish({ ...newDish, mesero: e.target.value })}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', background: '#fff' }}
+                >
+                  {meserosList.map((mesero) => (
+                    <option key={mesero} value={mesero}>{mesero}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b584c' }}>Precio ($ MXN):</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="Ej. 95"
+                  value={newDish.price}
+                  onChange={(e) => setNewDish({ ...newDish, price: e.target.value })}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e0d6cc', marginTop: '4px', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #e0d6cc', background: '#f5f0eb', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{ padding: '10px 18px', borderRadius: '8px', border: 'none', background: '#d97706', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  {submitting ? 'Guardando...' : 'Guardar Comanda'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
